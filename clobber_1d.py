@@ -87,6 +87,10 @@ class Clobber_1d(object):
         winColor = self.winner()
         return winColor == self.toPlay
     
+    def heuristicEvaluation(self):
+        # We should evaluate the board here and return a priority score
+        return True
+    
     def moveNumber(self):
         return len(self.moves)
 
