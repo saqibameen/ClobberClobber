@@ -10,26 +10,26 @@ from game_basics import EMPTY, BLACK, WHITE, isEmptyBlackWhite, opponent
 import heapq
 from libcpp cimport bool
 from libcpp.vector cimport vector
+from libcpp.utility cimport pair
 
 
 cdef class Clobber_1d(object):
 # Board is stored in 1-d array of EMPTY, BLACK, WHITE
 
 
-    cdef vector[int] board
-    cdef vector[int[2]] moves
-    cdef int toPlay
+    cdef vector[short] board
+    cdef vector[pair[short, short]] moves
+    cdef short toPlay
             
-    cpdef vector[int] custom_board(self, str start_position): # str of B, W, E or .
+    cpdef vector[short] custom_board(self, str start_position): # str of B, W, E or .
         cpdef dict color_map = { 'B': BLACK, 'W': WHITE, 'E': EMPTY, '.': EMPTY }
 
         for c in start_position:
             self.board.push_back(color_map[c])
 
-        print(f"self.board: {self.board}")
         return self.board
 
-    def __init__(self, str start_position, int first_player): 
+    def __init__(self, str start_position, short first_player): 
         # we take either a board size for standard "BWBW...", 
         # or a custom start string such as "BWEEWWB"
 
@@ -39,38 +39,35 @@ cdef class Clobber_1d(object):
         # self.moves = []
     
 
-    cpdef int getToPlay(self):
+    cpdef short getToPlay(self):
         return self.toPlay
 
-    cpdef int opp_color(self):
-        cdef int temp = 2 + 1 - self.toPlay
+    cpdef short opp_color(self):
+        cdef short temp = 2 + 1 - self.toPlay
         return temp
         
     cpdef void switchToPlay(self):
         self.toPlay = self.opp_color()
 
-    # TODO: int[2] move declaration
-    cpdef void play(self, int move_0, int move_1):
-        cdef int src = move_0
-        cdef int to = move_1
-        cdef int[2] typedMove = [move_0, move_1]
+    # TODO: ValidMove move declaration
+    cpdef void play(self, pair[short, short] move):
+        cdef short src = move.first
+        cdef short to = move.second
 
         assert self.board[src] == self.toPlay
         assert self.board[to] == self.opp_color()
         self.board[src] = EMPTY
         self.board[to] = self.toPlay
-        self.moves.push_back(typedMove)
+        self.moves.push_back(move)
         self.switchToPlay()
 
     cpdef void undoMove(self):
         self.switchToPlay()
         # TODO moves.back() what does it return?
-        cdef int[2] move_t = self.moves.back()
-        cdef int src = move_t[0] 
-        cdef int to = move_t[1]
+        cdef pair[short, short] move_t = self.moves.back()
+        cdef short src = move_t.first
+        cdef short to = move_t.second
         self.moves.pop_back()
-
-        print(f"src: {src} , to: {to}")
 
         assert self.board[src] == EMPTY
         assert self.board[to] == self.toPlay
@@ -78,12 +75,12 @@ cdef class Clobber_1d(object):
         self.board[src] = self.toPlay
     
 
-    cpdef vector[int[2]] legalMoves(self):
+    cpdef vector[pair[short, short]] legalMoves(self):
         # To do: this is super slow. Should keep track of moves
-        cdef vector[int[2]] moves
-        cdef int opp = self.opp_color()
-        cdef int last = len(self.board) - 1
-        cdef int p
+        cdef vector[pair[short, short]] moves
+        cdef short opp = self.opp_color()
+        cdef short last = len(self.board) - 1
+        cdef short p
         for i in range(len(self.board)):
             p = self.board[i]
             if p == self.toPlay:
@@ -94,12 +91,17 @@ cdef class Clobber_1d(object):
         return moves
     
         
-    cpdef vector[int[2]] get_opponents_moves(self, current_legal_moves, m, current, opposite):
-        cdef vector[int[2]] current_copy = current_legal_moves.copy()
-        cdef int src = m[0]
-        cdef int to = m[1]
+    cpdef vector[pair[short, short]] get_opponents_moves(self, vector[pair[short, short]] current_legal_moves, pair[short, short] m, short current, short opposite):
+
+        cdef vector[pair[short, short]] current_copy
+
+        for i in current_legal_moves:
+            current_copy.push_back(i)
+
+        cdef short src = m.first
+        cdef short to = m.second
         
-        cdef vector[int[2]] elements_to_be_removed_from_current = [m]
+        cdef vector[pair[short, short]] elements_to_be_removed_from_current = [m]
 
         # Check if there is next element. 
         if(to > src):
@@ -120,15 +122,27 @@ cdef class Clobber_1d(object):
                 elements_to_be_removed_from_current.insert(elements_to_be_removed_from_current.begin(), [src, src + 1])
 
         # Remove in O(N) and swap.
-        cdef vector[int[2]] return_current_copy
+        cdef vector[pair[short, short]] return_current_copy
+
+        # print(f"current_copy: {current_copy}")
+
+        # print(f"elements_to_be_removed_from_current: {elements_to_be_removed_from_current}")
 
         for i in range(len(current_copy)):
             e = current_copy[i]
+            exists = False 
             for j in range(len(elements_to_be_removed_from_current)):
                 k = elements_to_be_removed_from_current[j]
-                if(e[0] == k[0] and e[1] == k[1]):
-                    continue
-                else:
-                    return_current_copy.push_back([e[1], e[0]])
-        # current_copy = [(e[1], e[0]) for e in current_copy if e not in elements_to_be_removed_from_current]
+
+                # print(f"E: {e} , K: {k}")
+                if(e.first == k.first and e.second == k.second):
+                    exists = True
+                    break
+            if(not exists):
+                return_current_copy.push_back([e.second, e.first])
+                    
+
+        # print(f"Move: {m}")
+        # print(f"return_current_copy: {return_current_copy}")
+        # current_copy = [(e.second, e.first) for e in current_copy if e not in elements_to_be_removed_from_current]
         return return_current_copy

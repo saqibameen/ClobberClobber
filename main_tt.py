@@ -7,7 +7,7 @@ from boolean_negamax_tt_ids import timed_solve as timed_solve_ids
 import time
 import sys
 
-mode = "test" # run or test
+mode = "run" # run or test
 player_to_char = {'.': 0,
                   'B': 1,
                   'W': 2}
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
             state = Clobber_1d(board, player)
             # Playing the game, main
-            test_solve_with_tt_ids(state, player, time_limit, board)
+            test_solve_with_tt(state, player, time_limit, board)
             # test_solve_with_tt(state, player, time_limit, board)
         else:
             print(f"Misisng Arguments")

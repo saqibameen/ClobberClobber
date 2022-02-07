@@ -8,9 +8,10 @@ import time
 from game_basics import BLACK, COLOR_MAPPING, colorAsString, isBlackWhite, opponent
 from libcpp cimport bool
 from libcpp.vector cimport vector
+from libcpp.utility cimport pair
 
 
-cdef tuple win_move = None
+win_move = None
 cdef long long node_count = 0
 cdef double start = time.process_time()
 
@@ -18,7 +19,7 @@ cdef storeResult(tt, board_hash, result):
     tt.store(board_hash, result)
     return result
 
-cdef negamaxBoolean(state, tt, time_limit, board_hash, hash_list, vector[short[2]] current_legal_moves, current, opposite):
+cdef negamaxBoolean(state, tt, time_limit, board_hash, hash_list, current_legal_moves, current, opposite):
     global win_move, node_count, start
     node_count += 1
     result = tt.lookup(board_hash)
@@ -52,10 +53,10 @@ def timed_solve(state, tt, time_limit, board):
     start = time.process_time()
     cdef list hash_list = generate_hash(board)
     cdef unsigned long long board_hash = generate_board_hash(board, hash_list)
-    cdef vector[short[2]] current_legal_moves = state.legalMoves()
+    cdef vector[pair[short, short]] current_legal_moves = state.legalMoves()
     
-    current = state.getToPlay()
-    opposite =  2 + 1 - current
+    cdef short current = state.getToPlay()
+    cdef short opposite =  2 + 1 - current
 
     win, m = negamaxBoolean(state, tt, time_limit, board_hash, hash_list, current_legal_moves, current, opposite)
     timeUsed = time.process_time() - start
