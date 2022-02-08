@@ -1,83 +1,63 @@
-# Cmput 655 sample code
-# Solve Clobber with Boolean Minimax
-# Written by Martin Mueller
-
-from game_basics import BLACK, WHITE, EMPTY, colorAsString
-from clobber_1d import Clobber_1d
-from boolean_negamax import timed_solve
+from clobber_1d_cy import Clobber_1d
+from game_basics import BLACK, WHITE
+from transposition_table_simple_cy import TranspositionTable
+from boolean_negamax_tt_cy import timed_solve as timed_solve_hash
 import sys
 
+mode = "test" # run or test
 
-
-def solveAndPrint(state, player, time_limit, solver): 
-    print("Solve Board: size", len(state.board))
-    state.print()
-    print(colorAsString(state.toPlay), "to play")
-    isWin, win_move, timeUsed, node_count = solver(state, time_limit)
+def test_solve_with_tt(state, player, time_limit, board):
+    tt = TranspositionTable()
+    isWin, win_move, timeUsed, node_count =  timed_solve_hash(state, tt, float(time_limit), board)
 
     if(isWin == None):
         isWin = "?"
+    elif((player == BLACK and isWin) or (player == WHITE and not isWin)):
+        isWin = "B"
+    elif((player == BLACK and not isWin) or (player == WHITE and isWin)):
+        isWin = "W"
+
+    if mode == "run":
+        print("{} {} {:.4f} {}\n".format(isWin, win_move, timeUsed, node_count))
     
-    elif(player == BLACK and isWin):
-        isWin = "B"
-    elif(player == BLACK and not isWin):
-        isWin = "W"
-    elif(player == WHITE and isWin):
-        isWin = "W"
-    elif(player == WHITE and not isWin):
-        isWin = "B"
+    return isWin, win_move, timeUsed, node_count
 
-    print("{} {} {:.64f} {}\n".format(isWin, win_move, timeUsed, node_count))
+def run_small_test_cases():
+    smallTestCases = open("tests_small.txt", "r")
+    # Read a file
+    
+    testCases = smallTestCases.readlines()
+    for test in testCases:
+        # Split by " "
+        board, player, time_limit = test.split(" ")
+        state = Clobber_1d(board)
+        isWin, win_move, timeUsed, node_count = test_solve_with_tt(state, WHITE if player == "W" else BLACK, time_limit, board)
 
-def testGames(solver):
-    for i in range(2,25):
-        for player in [WHITE,BLACK]:
-            game = Clobber_1d(i, player)
-            solveAndPrint(game, solver)
-
-def analyze655Variation(solver):
-    game = Clobber_1d("BWBWBWB.WW", WHITE)
-    solveAndPrint(game, solver)
-
-def analyze655Game(solver):# Analyze the game we played in class
-    game = Clobber_1d(10)
-    solveAndPrint(game, solver)
-    game.play((1, 2))
-    solveAndPrint(game, solver)
-    game.play((6, 7))
-    solveAndPrint(game, solver)
-    game.play((3, 4))
-    solveAndPrint(game, solver)
-    game.play((8, 9))
-    solveAndPrint(game, solver)
-
-
-
-def main(board, player, time_limit, timed_solve):
-    # testGames(timed_solve)
-    #analyze655Game(timed_solve)
-    # analyze655Variation(timed_solve)
-
-    game = Clobber_1d(board, player)
-    solveAndPrint(game, player, time_limit, timed_solve)
-
+        # Open tests_small_results.txt and write the result
+        logs_file = open("tests_small_results.txt", "a") 
+        # Write test.
+        logs_file.write(test)
+        # Write result.
+        logs_file.write("{} {} {:.4f} {}\n".format(isWin, win_move, timeUsed, node_count))
+        # empty line.
+        logs_file.write("\n")
+        logs_file.close()
 
 if __name__ == "__main__":
+    if mode == "run":
+        if(len(sys.argv) == 4):
+            board = str(sys.argv[1]).upper()
+            player = str(sys.argv[2]).upper()
+            time_limit = float(sys.argv[3])
+            assert player == "B" or player == "W"
 
-    if(len(sys.argv) == 4):
-        board = str(sys.argv[1]).upper()
-        player = str(sys.argv[2]).upper()
-        time_limit = float(sys.argv[3])
+            if(player == "B"):
+                player = BLACK
+            else:
+                player = WHITE
 
-        assert player == "B" or player == "W"
-
-        if(player == "B"):
-            player = BLACK
+            state = Clobber_1d(board, player)
+            test_solve_with_tt(state, player, time_limit, board)
         else:
-            player = WHITE
-
-        # Playing the game, main 
-        main(board, player, time_limit, timed_solve)
-    else:
-        print(f"Misisng Arguments")
-
+            print(f"Misisng Arguments")
+    else: run_small_test_cases() 

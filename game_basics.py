@@ -2,7 +2,6 @@
 # Game basics - constants and definitions two player games
 # Written by Martin Mueller
 
-import random
 
 # encoding of colors of points on the board
 EMPTY = 0 

@@ -6,7 +6,6 @@ import random
 import time
 
 from game_basics import BLACK, COLOR_MAPPING, colorAsString, isBlackWhite, opponent
-from libcpp cimport bool
 
 
 
