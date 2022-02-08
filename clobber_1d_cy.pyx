@@ -8,7 +8,6 @@
 import random
 from game_basics import EMPTY, BLACK, WHITE, isEmptyBlackWhite, opponent
 import heapq
-from libcpp cimport bool
 
 cdef class Clobber_1d(object):
 # Board is stored in 1-d array of EMPTY, BLACK, WHITE

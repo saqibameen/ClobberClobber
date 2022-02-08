@@ -11,14 +11,14 @@ from libcpp cimport bool
 
 
 cdef tuple win_move = None
-cdef long long node_count = 0
-cdef double start = time.process_time()
+cdef int node_count = 0
+cdef float start = time.process_time()
 
 cdef storeResult(tt, board_hash, result):
     tt.store(board_hash, result)
     return result
 
-cdef negamaxBoolean(state, tt, time_limit, board_hash, hash_list, current_legal_moves, current, opposite):
+cdef negamaxBoolean(state, tt, time_limit, unsigned long int board_hash, list hash_list, list current_legal_moves, short current, short opposite):
     global win_move, node_count, start
     node_count += 1
     result = tt.lookup(board_hash)
@@ -51,7 +51,7 @@ def timed_solve(state, tt, time_limit, board):
     global start
     start = time.process_time()
     cdef list hash_list = generate_hash(board)
-    cdef unsigned long long board_hash = generate_board_hash(board, hash_list)
+    cdef unsigned long int board_hash = generate_board_hash(board, hash_list)
     cdef list current_legal_moves = state.legalMoves()
     
     current = state.getToPlay()
@@ -67,16 +67,12 @@ cdef list generate_hash(board):
             hash_list[0].append(random.randint(1, 2**64 - 1))
             hash_list[1].append(random.randint(1, 2**64 - 1))
 
-        # Check all the entries are unique.
-        # assert len(hash_list[0]) == len(set(hash_list[0]))
-        # assert len(hash_list[1]) == len(set(hash_list[1]))
-
         return hash_list
 
 # Initial board hash
 cdef unsigned long long generate_board_hash(board, hash_list): 
     # Calculate hash code
-    cdef unsigned long long hash_code = 0
+    cdef unsigned long int hash_code = 0
     for index, value in enumerate(board):
         if value == '.': continue
         hash_code = hash_code ^ hash_list[COLOR_MAPPING[value]-1][index]

@@ -5,7 +5,6 @@
 # Written by Martin Mueller
 
 import random
-from libcpp cimport bool
 
 
 COLOR_MAPPING = {
@@ -27,9 +26,9 @@ cdef class TranspositionTable():
     def __repr__(self):
         return self.table.__repr__()
         
-    cpdef void store(self, code, score):
+    cpdef void store(self, unsigned long int code, score):
         self.table[code] = score
     
     # Python dictionary returns 'None' if key not found by get()
-    def lookup(self, code):
+    def lookup(self, unsigned long int code):
         return self.table.get(code)
